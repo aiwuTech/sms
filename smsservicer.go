@@ -13,8 +13,6 @@
 // under the License.
 package sms
 
-import ()
-
 type SmsServicer interface {
 	GetUserInfo() (*SmsUser, error)
 	SendSMS(string, []string) (*SmsResult, error)
