@@ -18,12 +18,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/globalways/utils_go/convert"
-	"github.com/globalways/utils_go/http/client"
+	"github.com/aiwuTech/convert"
 	"log"
 	"net/url"
 	"reflect"
 	"strings"
+	"github.com/aiwuTech/httpclient"
 )
 
 const (
@@ -83,13 +83,13 @@ func (y *YunPianService) GetUserInfo() (*SmsUser, error) {
 	}
 
 	url := fmt.Sprintf("%s?%s", _Uri_Get_User_Info_YP, params.Encode())
-	rsp, err := client.ForwardHttp("GET", url, nil)
+	rsp, err := httpclient.ForwardHttp("GET", url, nil)
 	if err != nil {
 		log.Printf("err: %v\n", err)
 		return nil, errors.New("[YunPian] " + err.Error())
 	}
 
-	data := client.GetForwardHttpBody(rsp.Body)
+	data := httpclient.GetForwardHttpBody(rsp.Body)
 	body := make(map[string]interface{})
 	if err := json.Unmarshal(data, &body); err != nil {
 		log.Printf("err: %v\n", err)
@@ -132,13 +132,13 @@ func (y *YunPianService) SendSMS(text string, mobiles []string) (*SmsResult, err
 		"mobile": []string{strings.Join(mobiles, ",")},
 	}
 
-	rsp, err := client.ForwardHttp("POST", _Uri_Send_SMS_YP, bytes.NewBufferString(params.Encode()))
+	rsp, err := httpclient.ForwardHttp("POST", _Uri_Send_SMS_YP, bytes.NewBufferString(params.Encode()))
 	if err != nil {
 		log.Printf("err: %v\n", err)
 		return nil, errors.New("[YunPian] " + err.Error())
 	}
 
-	data := client.GetForwardHttpBody(rsp.Body)
+	data := httpclient.GetForwardHttpBody(rsp.Body)
 	body := make(map[string]interface{})
 	if err := json.Unmarshal(data, &body); err != nil {
 		log.Printf("err: %v\n", err)
@@ -188,13 +188,13 @@ func (y *YunPianService) SendSMS_Tpl(tplid int64, mobiles []string, args []strin
 		}()...)},
 	}
 
-	rsp, err := client.ForwardHttp("POST", _Uri_Tpl_Send_SMS_YP, bytes.NewBufferString(params.Encode()))
+	rsp, err := httpclient.ForwardHttp("POST", _Uri_Tpl_Send_SMS_YP, bytes.NewBufferString(params.Encode()))
 	if err != nil {
 		log.Printf("err: %v\n", err)
 		return nil, errors.New("[YunPian] " + err.Error())
 	}
 
-	data := client.GetForwardHttpBody(rsp.Body)
+	data := httpclient.GetForwardHttpBody(rsp.Body)
 	body := make(map[string]interface{})
 	if err := json.Unmarshal(data, &body); err != nil {
 		log.Printf("err: %v\n", err)

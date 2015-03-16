@@ -15,7 +15,7 @@ package sms
 
 import (
 	"github.com/astaxie/beego/cache"
-	"github.com/globalways/utils_go/random"
+	"github.com/aiwuTech/random"
 	"log"
 	"math"
 	"time"
