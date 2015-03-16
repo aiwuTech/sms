@@ -19,11 +19,6 @@ Update
 
     go get -u github.com/aiwuTech/sms
 
-Usage
------
-
-用法请参考[example](https://github.com/aiwuTech/sms/tree/master/example)，持续更新中
-
 API
 ---
 
