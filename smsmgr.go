@@ -14,6 +14,7 @@
 package sms
 
 import (
+	"fmt"
 	"github.com/aiwuTech/devKit/random"
 	"github.com/astaxie/beego/cache"
 	"log"
@@ -24,18 +25,27 @@ import (
 const (
 	// default sms auth code attribute
 	defaultLen    = 6
-	defaultExpire = 1 * 60 * 60
+	defaultExpire = time.Hour
 	defaultChan   = 100
 )
 
 type SmsManager struct {
 	min        int
 	max        int
-	expire     int64
+	expire     time.Duration
+	company    string
 	store      cache.Cache
 	service    SmsServicer
 	smsChan    chan []string              // 0: text 1 - n-1: mobiles
 	smsChanTpl chan map[int64][2][]string // key: template id, value[0]:mobiles, value[1]:args
+}
+
+func (s *SmsManager) GetCompany() string {
+	return s.company
+}
+
+func (s *SmsManager) GetService() SmsServicer {
+	return s.service
 }
 
 // 内容直接发送协程
@@ -78,7 +88,7 @@ func (s *SmsManager) sendSMS_tpl(messages chan map[int64][2][]string) {
 }
 
 // 新建短信manager
-func NewSmsManager(len int, expire int64, store cache.Cache, service SmsServicer, cLen int) *SmsManager {
+func NewSmsManager(len int, expire time.Duration, store cache.Cache, service SmsServicer, cLen int, company string) *SmsManager {
 	manager := &SmsManager{
 		min:        int(math.Pow(10, float64(len-1))),
 		max:        int(math.Pow(10, float64(len))),
@@ -87,6 +97,7 @@ func NewSmsManager(len int, expire int64, store cache.Cache, service SmsServicer
 		service:    service,
 		smsChan:    make(chan []string, cLen),
 		smsChanTpl: make(chan map[int64][2][]string, cLen),
+		company:    company,
 	}
 
 	// listen up for send sms by text
@@ -98,8 +109,8 @@ func NewSmsManager(len int, expire int64, store cache.Cache, service SmsServicer
 }
 
 // 默认短信manager
-func NewDefaultSmsManager(apikey string) *SmsManager {
-	return NewSmsManager(defaultLen, defaultExpire, cache.NewMemoryCache(), NewYunPian(apikey), defaultChan)
+func NewDefaultSmsManager(company string, service SmsServicer) *SmsManager {
+	return NewSmsManager(defaultLen, defaultExpire, cache.NewMemoryCache(), service, defaultChan, company)
 }
 
 // generate sms auth code
@@ -109,7 +120,7 @@ func (s *SmsManager) getRandCode() string {
 
 // generate cache key
 func (s *SmsManager) key(tel string) string {
-	return tel
+	return fmt.Sprintf("%v_%v", s.company, tel)
 }
 
 // sms code
@@ -143,11 +154,13 @@ func (s *SmsManager) Verify(tel, code string) (success bool) {
 
 	k := s.key(tel)
 
+	//	log.Printf("chars: %v", chars)
 	if v, ok := s.store.Get(k).(string); ok {
 		chars = v
 	} else {
 		return
 	}
+	//	log.Printf("chars: %v", chars)
 
 	defer func() {
 		// finally remove it
